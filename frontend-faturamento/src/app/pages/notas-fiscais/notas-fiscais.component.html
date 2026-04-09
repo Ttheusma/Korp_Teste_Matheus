@@ -1,0 +1,69 @@
+<div class="container mt-5">
+  <h2 class="mb-4">🧾 Emissão de Notas Fiscais</h2>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6">
+          <h5>Nota Nº: <span class="badge bg-secondary">{{ novaNota.numeracao }}</span></h5>
+        </div>
+        <div class="col-md-6 text-end">
+          <h5>Status: <span class="badge bg-info text-dark">{{ novaNota.status }}</span></h5>
+        </div>
+      </div>
+      <hr>
+
+      <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label">Selecionar Produto</label>
+          <select class="form-select" [(ngModel)]="itemAtual.produtoId">
+            <option value="0">Escolha um produto...</option>
+            <option *ngFor="let p of produtosDisponiveis" [value]="p.id">
+              {{ p.codigo }} - {{ p.descricao }} (Estoque: {{ p.saldo }})
+            </option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Quantidade</label>
+          <input type="number" class="form-control" [(ngModel)]="itemAtual.quantidade">
+        </div>
+        <div class="col-md-4">
+          <button class="btn btn-outline-success w-100" (click)='adicionarItem()'>+ Adicionar à Nota</button>
+        </div>
+      </div>
+
+      <div class="mt-4" *ngIf="novaNota.itens.length > 0">
+        <h6>Produtos na Nota:</h6>
+        <ul class="list-group">
+          <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let item of novaNota.itens">
+            {{ item.produto?.descricao }}
+            <span><strong>Qtd: {{ item.quantidade }}</strong></span>
+          </li>
+        </ul>
+        <button class="btn btn-primary mt-3" (click)="salvarNota()">Gerar Nota Fiscal</button>
+      </div>
+    </div>
+  </div>
+
+  <h4>Notas Emitidas</h4>
+  <table class="table table-striped mt-3">
+    <thead class="table-dark">
+      <tr>
+        <th>Nº</th>
+        <th>Status</th>
+        <th>Itens</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let nota of notas">
+        <td>{{ nota.numeracao }}</td>
+        <td><span class="badge" [ngClass]="nota.status === 'Aberta' ? 'bg-info text-dark' : 'bg-success'">{{ nota.status }}</span></td>
+        <td>{{ nota.itens.length }} produtos</td>
+        <td>
+          <button class="btn btn-sm btn-warning" [disabled]="nota.status !== 'Aberta'" (click)="imprimirNota(nota)">🖨️ Imprimir</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
