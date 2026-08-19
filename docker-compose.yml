@@ -1,0 +1,55 @@
+name: korp-teste-matheus
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: korp-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"           # 5433 no host para nao brigar com o Postgres local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  estoque:
+    build: ./backend/EstoqueService
+    container_name: korp-estoque
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=db_estoque;Username=postgres;Password=postgres"
+    ports:
+      - "5001:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  faturamento:
+    build: ./backend/FaturamentoService
+    container_name: korp-faturamento
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=db_faturamento;Username=postgres;Password=postgres"
+      Services__Estoque: "http://estoque:8080/"
+    ports:
+      - "5002:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      estoque:
+        condition: service_started
+
+  frontend:
+    build: ./frontend/korp-frontend
+    container_name: korp-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - estoque
+      - faturamento
+
+volumes:
+  pgdata:
